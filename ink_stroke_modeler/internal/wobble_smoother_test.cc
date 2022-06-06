@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/wobble_smoother.h"
+#include "ink_stroke_modeler/internal/wobble_smoother.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/type_matchers.h"
-#include "ink-stroke-modeler/ink_stroke_modeler/params.h"
-#include "ink-stroke-modeler/ink_stroke_modeler/types.h"
+#include "ink_stroke_modeler/internal/type_matchers.h"
+#include "ink_stroke_modeler/params.h"
+#include "ink_stroke_modeler/types.h"
 
 namespace ink {
 namespace stroke_model {

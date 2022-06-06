@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/kalman_predictor.h"
+#include "ink_stroke_modeler/internal/prediction/kalman_predictor.h"
 
 #include <algorithm>
 #include <cmath>
@@ -20,9 +20,9 @@
 #include <optional>
 #include <vector>
 
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/internal_types.h"
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/utils.h"
-#include "ink-stroke-modeler/ink_stroke_modeler/params.h"
+#include "ink_stroke_modeler/internal/internal_types.h"
+#include "ink_stroke_modeler/internal/utils.h"
+#include "ink_stroke_modeler/params.h"
 
 namespace ink {
 namespace stroke_model {

@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/stroke_end_predictor.h"
+#include "ink_stroke_modeler/internal/prediction/stroke_end_predictor.h"
 
 #include <iterator>
 #include <optional>
 #include <vector>
 
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/internal_types.h"
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/position_modeler.h"
-#include "ink-stroke-modeler/ink_stroke_modeler/types.h"
+#include "ink_stroke_modeler/internal/internal_types.h"
+#include "ink_stroke_modeler/internal/position_modeler.h"
+#include "ink_stroke_modeler/types.h"
 
 namespace ink {
 namespace stroke_model {

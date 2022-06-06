@@ -1,4 +1,4 @@
-#include "ink-stroke-modeler/ink_stroke_modeler/internal/validation.h"
+#include "ink_stroke_modeler/internal/validation.h"
 
 #include <cmath>
 

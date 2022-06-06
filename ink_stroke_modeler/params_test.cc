@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink-stroke-modeler/ink_stroke_modeler/params.h"
+#include "ink_stroke_modeler/params.h"
 
 #include <climits>
 #include <limits>

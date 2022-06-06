@@ -19,7 +19,7 @@
 
 #include <cmath>
 
-#include "ink-stroke-modeler/ink_stroke_modeler/types.h"
+#include "ink_stroke_modeler/types.h"
 
 namespace ink {
 namespace stroke_model {
