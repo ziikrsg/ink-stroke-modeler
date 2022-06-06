@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink_stroke_modeler/internal/stylus_state_modeler.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/stylus_state_modeler.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "ink_stroke_modeler/internal/internal_types.h"
-#include "ink_stroke_modeler/internal/type_matchers.h"
-#include "ink_stroke_modeler/params.h"
-#include "ink_stroke_modeler/types.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/internal_types.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/type_matchers.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/params.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/types.h"
 
 namespace ink {
 namespace stroke_model {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink_stroke_modeler/internal/prediction/kalman_filter/axis_predictor.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/kalman_filter/axis_predictor.h"
 
 #include <vector>
 

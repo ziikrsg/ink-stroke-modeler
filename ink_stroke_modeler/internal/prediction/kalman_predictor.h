@@ -21,11 +21,11 @@
 #include <optional>
 #include <vector>
 
-#include "ink_stroke_modeler/internal/internal_types.h"
-#include "ink_stroke_modeler/internal/prediction/input_predictor.h"
-#include "ink_stroke_modeler/internal/prediction/kalman_filter/axis_predictor.h"
-#include "ink_stroke_modeler/params.h"
-#include "ink_stroke_modeler/types.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/internal_types.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/input_predictor.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/kalman_filter/axis_predictor.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/params.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/types.h"
 
 namespace ink {
 namespace stroke_model {

@@ -1,7 +1,7 @@
-#include "ink_stroke_modeler/types.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/types.h"
 
 #include "absl/status/status.h"
-#include "ink_stroke_modeler/internal/validation.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/validation.h"
 
 // This convenience macro evaluates the given expression, and if it does not
 // return an OK status, returns and propagates the status.

@@ -18,8 +18,8 @@
 #define INK_STROKE_MODELER_INTERNAL_TYPE_MATCHERS_H_
 
 #include "gtest/gtest.h"
-#include "ink_stroke_modeler/internal/internal_types.h"
-#include "ink_stroke_modeler/types.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/internal_types.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/types.h"
 
 namespace ink {
 namespace stroke_model {

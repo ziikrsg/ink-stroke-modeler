@@ -23,12 +23,12 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "ink_stroke_modeler/internal/position_modeler.h"
-#include "ink_stroke_modeler/internal/prediction/input_predictor.h"
-#include "ink_stroke_modeler/internal/stylus_state_modeler.h"
-#include "ink_stroke_modeler/internal/wobble_smoother.h"
-#include "ink_stroke_modeler/params.h"
-#include "ink_stroke_modeler/types.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/position_modeler.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/input_predictor.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/stylus_state_modeler.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/wobble_smoother.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/params.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/types.h"
 
 namespace ink {
 namespace stroke_model {

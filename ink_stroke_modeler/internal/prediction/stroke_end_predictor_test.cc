@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink_stroke_modeler/internal/prediction/stroke_end_predictor.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/stroke_end_predictor.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
-#include "ink_stroke_modeler/internal/prediction/input_predictor.h"
-#include "ink_stroke_modeler/internal/type_matchers.h"
-#include "ink_stroke_modeler/params.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/input_predictor.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/type_matchers.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/params.h"
 
 namespace ink {
 namespace stroke_model {

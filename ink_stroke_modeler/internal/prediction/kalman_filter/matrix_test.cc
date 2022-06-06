@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink_stroke_modeler/internal/prediction/kalman_filter/matrix.h"
+#include "ink-stroke-modeler/ink_stroke_modeler/internal/prediction/kalman_filter/matrix.h"
 
 #include <sstream>
 #include <string>
