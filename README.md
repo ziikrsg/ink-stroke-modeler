@@ -46,12 +46,12 @@ if you want to use a local checkout of Ink Stroke Modeler instead, use the
 [`local_repository`](https://bazel.build/reference/be/workspace#local_repository)
 workspace rule instead of `git_repository`.
 
-Since Ink Stroke Modeler requires C++17, it must be built with
-`--cxxopt='-std=c++17'` (or similar indicating a newer version). You can put the
+Since Ink Stroke Modeler requires C++20, it must be built with
+`--cxxopt='-std=c++20'` (or similar indicating a newer version). You can put the
 following in your project's `.bazelrc` to use this by default:
 
 ```none
-build --cxxopt='-std=c++17'
+build --cxxopt='-std=c++20'
 ```
 
 Then you can include the following in your targets' `deps`:
@@ -81,10 +81,10 @@ submodule:
 git submodule add https://github.com/google/ink-stroke-modeler
 ```
 
-And then include it in your `CMakeLists.txt`, requiring at least C++17:
+And then include it in your `CMakeLists.txt`, requiring at least C++20:
 
 ```cmake
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # If you want to use installed (or already fetched) versions of Abseil and/or
 # GTest (for example, if you've installed libabsl-dev and libgtest-dev), add:
@@ -175,7 +175,8 @@ parameters; this also clears the in-progress stroke, if any. If the `Update` or
 `absl::FailedPreconditionError`.
 
 To use the model, pass in an `Input` object to `StrokeModeler::Update()` each
-time you recieve an input event:
+time you receive an input event. This appends to a `std::vector<Result>` of
+stroke smoothing results:
 
 ```c++
 Input input{
@@ -187,14 +188,13 @@ Input input{
   .orientation = M_PI  // Angle in plane of screen in radians
   .tilt = 0,  // Angle elevated from plane of screen in radians
 };
-absl::StatusOr<std::vector<Result>> result = modeler.Update(input);
-if (status.ok()) {
-  std::vector<Result> smoothed_input = *result;
-  // Do something with the result.
-} else {
-  absl::Status error_status = result.status();
-  // Handle error.
+if (absl::Status status = modeler.Update(input, smoothed_stroke);
+    !status.ok()) {
+  // Handle error...
+  return status;
 }
+// Do something with the smoothed stroke so far...
+return absl::OkStatus();
 ```
 
 `Input`s are expected to come in a *stream*, starting with a `kDown` event,
@@ -219,16 +219,16 @@ last `Input`, wile the `Result` objects in the middle have their `position`
 adjusted to smooth out and interpolate between the input values.
 
 To construct a prediction, call `StrokeModeler::Predict()` while an input stream
-is in-progress:
+is in-progress. This takes a `std::vector<Result>` and replaces the contents
+with the new prediction:
 
 ```c++
-if (absl::StatusOr<std::vector<Result>> = modeler.Predict()) {
-  std::vector<Result> smoothed_input = *result;
-  // Do something with the result.
-} else {
-  absl::Status error_status = result.status();
-  // Handle error.
+if (absl::Status status = modeler.Predict(predicted_stroke); !status.ok) {
+  // Handle error...
+  return status;
 }
+// Do something with the new prediction...
+return absl::OkStatus();
 ```
 
 If no input stream is in-progress, it will instead return

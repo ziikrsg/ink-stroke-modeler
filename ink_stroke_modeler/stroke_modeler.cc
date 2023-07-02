@@ -17,11 +17,9 @@
 #include <iterator>
 #include <memory>
 #include <optional>
-#include <type_traits>
 #include <variant>
 #include <vector>
 
-#include "absl/base/attributes.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/substitute.h"
@@ -67,9 +65,6 @@ absl::StatusOr<int> GetNumberOfSteps(Time start_time, Time end_time,
   return n_steps;
 }
 
-template <typename>
-ABSL_ATTRIBUTE_UNUSED inline constexpr bool kAlwaysFalse = false;
-
 }  // namespace
 
 absl::Status StrokeModeler::Reset(
@@ -83,25 +78,24 @@ absl::Status StrokeModeler::Reset(
   // (e.g. start position, input type) when resetting, and as such are reset in
   // ProcessTDown() instead.
   stroke_model_params_ = stroke_model_params;
-  last_input_ = std::nullopt;
+  ResetInternal();
 
-  std::visit(
-      [this](auto &&params) {
-        using ParamType = std::decay_t<decltype(params)>;
-        if constexpr (std::is_same_v<ParamType, KalmanPredictorParams>) {
-          predictor_ = std::make_unique<KalmanPredictor>(
-              params, stroke_model_params_->sampling_params);
-        } else if constexpr (std::is_same_v<ParamType,
-                                            StrokeEndPredictorParams>) {
-          predictor_ = std::make_unique<StrokeEndPredictor>(
-              stroke_model_params_->position_modeler_params,
-              stroke_model_params_->sampling_params);
-        } else {
-          static_assert(kAlwaysFalse<ParamType>,
-                        "Unknown prediction parameter type");
-        }
-      },
-      stroke_model_params_->prediction_params);
+  const PredictionParams &prediction_params =
+      stroke_model_params_->prediction_params;
+  static_assert(std::variant_size_v<PredictionParams> == 3);
+  if (std::holds_alternative<KalmanPredictorParams>(prediction_params)) {
+    predictor_ = std::make_unique<KalmanPredictor>(
+        std::get<KalmanPredictorParams>(prediction_params),
+        stroke_model_params_->sampling_params);
+  } else if (std::holds_alternative<StrokeEndPredictorParams>(
+                 prediction_params)) {
+    predictor_ = std::make_unique<StrokeEndPredictor>(
+        stroke_model_params_->position_modeler_params,
+        stroke_model_params_->sampling_params);
+  } else if (std::holds_alternative<DisabledPredictorParams>(
+                 prediction_params)) {
+    predictor_ = nullptr;
+  }
   return absl::OkStatus();
 }
 
@@ -110,14 +104,17 @@ absl::Status StrokeModeler::Reset() {
     return absl::FailedPreconditionError(
         "Initial call to Reset must pass StrokeModelParams.");
   }
-  last_input_ = absl::nullopt;
+  ResetInternal();
   return absl::OkStatus();
+}
+
+void StrokeModeler::ResetInternal() {
+  last_input_.reset();
+  save_active_ = false;
 }
 
 absl::Status StrokeModeler::Update(const Input &input,
                                    std::vector<Result> &results) {
-  results.clear();
-
   if (!stroke_model_params_.has_value()) {
     return absl::FailedPreconditionError(
         "Stroke model has not yet been initialized");
@@ -156,6 +153,11 @@ absl::Status StrokeModeler::Predict(std::vector<Result> &results) {
         "Stroke model has not yet been initialized");
   }
 
+  if (predictor_ == nullptr) {
+    return absl::FailedPreconditionError(
+        "Prediction has been disabled by StrokeModelParams.");
+  }
+
   if (last_input_ == std::nullopt) {
     return absl::FailedPreconditionError(
         "Cannot construct prediction when no stroke is in-progress");
@@ -189,8 +191,10 @@ absl::Status StrokeModeler::ProcessDownEvent(const Input &input,
                                 .orientation = input.orientation});
 
   const TipState &tip_state = position_modeler_.CurrentState();
-  predictor_->Reset();
-  predictor_->Update(input.position, input.time);
+  if (predictor_ != nullptr) {
+    predictor_->Reset();
+    predictor_->Update(input.position, input.time);
+  }
 
   // We don't correct the position on the down event, so we set
   // corrected_position to use the input position.
@@ -276,10 +280,35 @@ absl::Status StrokeModeler::ProcessMoveEvent(const Input &input,
       corrected_position, input.time, *n_steps,
       std::back_inserter(tip_state_buffer_));
 
-  predictor_->Update(corrected_position, input.time);
+  if (predictor_ != nullptr) {
+    predictor_->Update(corrected_position, input.time);
+  }
   last_input_ = {.input = input, .corrected_position = corrected_position};
   ModelStylus(tip_state_buffer_, stylus_state_modeler_, results);
   return absl::OkStatus();
+}
+
+void StrokeModeler::Save() {
+  wobble_smoother_.Save();
+  position_modeler_.Save();
+  stylus_state_modeler_.Save();
+  saved_last_input_ = last_input_;
+  if (predictor_ != nullptr) {
+    saved_predictor_ = predictor_->MakeCopy();
+  }
+  save_active_ = true;
+}
+
+void StrokeModeler::Restore() {
+  if (!save_active_) return;
+
+  wobble_smoother_.Restore();
+  position_modeler_.Restore();
+  stylus_state_modeler_.Restore();
+  last_input_ = saved_last_input_;
+  if (saved_predictor_ != nullptr) {
+    predictor_ = saved_predictor_->MakeCopy();
+  }
 }
 
 }  // namespace stroke_model
