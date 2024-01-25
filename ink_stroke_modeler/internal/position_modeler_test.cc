@@ -16,10 +16,13 @@
 
 #include <cmath>
 #include <iterator>
+#include <limits>
 #include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "ink_stroke_modeler/internal/internal_types.h"
 #include "ink_stroke_modeler/internal/type_matchers.h"
 #include "ink_stroke_modeler/params.h"
@@ -369,6 +372,76 @@ TEST(PositionModelerTest, SaveAndRestore) {
   current_time += kDefaultTimeStep;
   EXPECT_THAT(modeler.Update({1, 0}, current_time),
               TipStateNear({{.0909, 0}, {16.3636, 0}, current_time}, kTol));
+}
+
+TEST(NumberOfStepsBetweenInputsTest, ResolutionIsSufficient) {
+  absl::StatusOr<int> n_steps = NumberOfStepsBetweenInputs(
+      TipState{{0, 0}, {0, 0}, Time{0}},
+      Input{.position = {0, 0}, .time = Time{0}},
+      Input{.position = {1, 0}, .time = Time{1}},
+      SamplingParams{.min_output_rate = 0.1}, PositionModelerParams{});
+  ASSERT_TRUE(n_steps.ok());
+  EXPECT_EQ(*n_steps, 1);
+}
+
+TEST(NumberOfStepsBetweenInputsTest, TimeTooLong) {
+  absl::StatusOr<int> n_steps = NumberOfStepsBetweenInputs(
+      TipState{{0, 0}, {0, 0}, Time{0}},
+      Input{.position = {0, 0}, .time = Time{0}},
+      Input{.position = {1, 0}, .time = Time{20}},
+      SamplingParams{.min_output_rate = 0.1}, PositionModelerParams{});
+  ASSERT_TRUE(n_steps.ok());
+  EXPECT_EQ(*n_steps, 2);
+}
+
+TEST(NumberOfStepsBetweenInputsTest, TimeTooLongAvoidsIntOverflow) {
+  absl::StatusOr<int> n_steps = NumberOfStepsBetweenInputs(
+      TipState{{0, 0}, {0, 0}, Time{0}},
+      Input{.position = {0, 0}, .time = Time{0}},
+      Input{.position = {1, 0}, .time = Time{1}},
+      SamplingParams{.min_output_rate = 1.0 + std::numeric_limits<int>::max(),
+                     .max_outputs_per_call = std::numeric_limits<int>::max()},
+      PositionModelerParams{});
+  ASSERT_TRUE(n_steps.ok());
+  EXPECT_EQ(*n_steps, std::numeric_limits<int>::max());
+}
+
+TEST(NumberOfStepsBetweenInputsTest, ExactlyMaxOutputsPerCall) {
+  absl::StatusOr<int> n_steps = NumberOfStepsBetweenInputs(
+      TipState{{0, 0}, {0, 0}, Time{0}},
+      Input{.position = {0, 0}, .time = Time{0}},
+      Input{.position = {1, 0}, .time = Time{20}},
+      SamplingParams{.min_output_rate = 0.1, .max_outputs_per_call = 2},
+      PositionModelerParams{});
+  ASSERT_TRUE(n_steps.ok());
+  EXPECT_EQ(*n_steps, 2);
+}
+
+TEST(NumberOfStepsBetweenInputsTest, OverMaxOutputsPerCall) {
+  absl::StatusOr<int> n_steps = NumberOfStepsBetweenInputs(
+      TipState{{0, 0}, {0, 0}, Time{0}},
+      Input{.position = {0, 0}, .time = Time{0}},
+      Input{.position = {1, 0}, .time = Time{20}},
+      SamplingParams{.min_output_rate = 0.1, .max_outputs_per_call = 1},
+      PositionModelerParams{});
+  EXPECT_EQ(n_steps.status().code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST(NumberOfStepsBetweenInputsTest, UpsampleDueToSharpTurn) {
+  absl::StatusOr<int> n_steps = NumberOfStepsBetweenInputs(
+      TipState{{0, 0}, {0, 1}, Time{0}},
+      Input{.position = {0, 0}, .time = Time{0}},
+      // This should predict basically a 90-degree turn over the interval, it
+      // starts going straight up and is pulled very strongly to the right.
+      Input{.position = {500, 0}, .time = Time{1}},
+      SamplingParams{.min_output_rate = 0.1,
+                     // Require one sample per degree of turn that would
+                     // be made without upsampling.
+                     .max_estimated_angle_to_traverse_per_input = M_PI / 180},
+      PositionModelerParams{});
+  ASSERT_TRUE(n_steps.ok());
+  // This ends up being slightly over 90 due to some precision loss somewhere.
+  EXPECT_EQ(*n_steps, 91);
 }
 
 }  // namespace

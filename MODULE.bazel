@@ -1,0 +1,16 @@
+module(
+    name = "ink_stroke_modeler",
+    version = "0.1",
+)
+bazel_dep(
+    name = "abseil-cpp",
+    version = "20211102.0",
+    repo_name = "com_google_absl",
+)
+bazel_dep(
+    name = "googletest",
+    version = "1.11.0",
+    repo_name = "com_google_googletest",
+    dev_dependency = True,
+)
+
