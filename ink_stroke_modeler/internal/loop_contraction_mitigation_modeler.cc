@@ -1,8 +1,8 @@
-#include "ink_stroke_modeler/internal/loop_contraction_mitigation_modeler.h"
+#include "loop_contraction_mitigation_modeler.h"
 
-#include "ink_stroke_modeler/internal/utils.h"
-#include "ink_stroke_modeler/params.h"
-#include "ink_stroke_modeler/types.h"
+#include "utils.h"
+#include "../params.h"
+#include "../types.h"
 
 namespace ink {
 namespace stroke_model {

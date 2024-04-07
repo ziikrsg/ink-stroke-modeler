@@ -20,8 +20,8 @@
 #include <memory>
 #include <vector>
 
-#include "ink_stroke_modeler/internal/internal_types.h"
-#include "ink_stroke_modeler/types.h"
+#include "../internal_types.h"
+#include "../../types.h"
 
 namespace ink {
 namespace stroke_model {

@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink_stroke_modeler/internal/prediction/kalman_filter/kalman_filter.h"
+#include "kalman_filter.h"
 
-#include "ink_stroke_modeler/internal/prediction/kalman_filter/matrix.h"
+#include "matrix.h"
 
 namespace ink {
 namespace stroke_model {
