@@ -1,4 +1,4 @@
-#include "ink_stroke_modeler/internal/position_modeler.h"
+#include "position_modeler.h"
 
 #include <algorithm>
 #include <cmath>
@@ -7,9 +7,9 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/substitute.h"
-#include "ink_stroke_modeler/internal/internal_types.h"
-#include "ink_stroke_modeler/params.h"
-#include "ink_stroke_modeler/types.h"
+#include "internal_types.h"
+#include "../params.h"
+#include "../types.h"
 
 namespace ink {
 namespace stroke_model {
