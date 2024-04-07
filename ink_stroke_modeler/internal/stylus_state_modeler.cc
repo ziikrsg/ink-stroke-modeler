@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink_stroke_modeler/internal/stylus_state_modeler.h"
+#include "stylus_state_modeler.h"
 
 #include <cmath>
 #include <deque>
 #include <limits>
 #include <optional>
 
-#include "ink_stroke_modeler/internal/internal_types.h"
-#include "ink_stroke_modeler/internal/utils.h"
-#include "ink_stroke_modeler/params.h"
-#include "ink_stroke_modeler/types.h"
+#include "internal_types.h"
+#include "utils.h"
+#include "../params.h"
+#include "../types.h"
 
 namespace ink {
 namespace stroke_model {

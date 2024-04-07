@@ -19,7 +19,7 @@
 
 #include <memory>
 
-#include "ink_stroke_modeler/internal/prediction/kalman_filter/kalman_filter.h"
+#include "kalman_filter.h"
 
 namespace ink {
 namespace stroke_model {

@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "ink_stroke_modeler/types.h"
+#include "../types.h"
 
 namespace ink {
 namespace stroke_model {

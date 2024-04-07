@@ -17,7 +17,7 @@
 #ifndef INK_STROKE_MODELER_INTERNAL_PREDICTION_KALMAN_FILTER_KALMAN_FILTER_H_
 #define INK_STROKE_MODELER_INTERNAL_PREDICTION_KALMAN_FILTER_KALMAN_FILTER_H_
 
-#include "ink_stroke_modeler/internal/prediction/kalman_filter/matrix.h"
+#include "matrix.h"
 
 namespace ink {
 namespace stroke_model {

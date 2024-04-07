@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink_stroke_modeler/stroke_modeler.h"
+#include "stroke_modeler.h"
 
 #include <cstddef>
 #include <cstdlib>
@@ -24,16 +24,16 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "ink_stroke_modeler/internal/internal_types.h"
-#include "ink_stroke_modeler/internal/loop_contraction_mitigation_modeler.h"
-#include "ink_stroke_modeler/internal/position_modeler.h"
-#include "ink_stroke_modeler/internal/prediction/input_predictor.h"
-#include "ink_stroke_modeler/internal/prediction/kalman_predictor.h"
-#include "ink_stroke_modeler/internal/prediction/stroke_end_predictor.h"
-#include "ink_stroke_modeler/internal/stylus_state_modeler.h"
-#include "ink_stroke_modeler/internal/utils.h"
-#include "ink_stroke_modeler/params.h"
-#include "ink_stroke_modeler/types.h"
+#include "internal/internal_types.h"
+#include "internal/loop_contraction_mitigation_modeler.h"
+#include "internal/position_modeler.h"
+#include "internal/prediction/input_predictor.h"
+#include "internal/prediction/kalman_predictor.h"
+#include "internal/prediction/stroke_end_predictor.h"
+#include "internal/stylus_state_modeler.h"
+#include "internal/utils.h"
+#include "params.h"
+#include "types.h"
 
 namespace ink {
 namespace stroke_model {

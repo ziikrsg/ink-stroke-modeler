@@ -1,4 +1,4 @@
-#include "ink_stroke_modeler/internal/internal_types.h"
+#include "internal_types.h"
 
 #include <string>
 

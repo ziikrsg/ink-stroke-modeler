@@ -12,16 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "ink_stroke_modeler/params.h"
+#include "params.h"
 
 #include <variant>
 
 #include "absl/status/status.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
-#include "ink_stroke_modeler/internal/validation.h"
-#include "ink_stroke_modeler/numbers.h"
-#include "ink_stroke_modeler/types.h"
+#include "internal/validation.h"
+#include "../numbers.h"
+#include "../types.h"
 
 // This convenience macro evaluates the given expression, and if it does not
 // return an OK status, returns and propagates the status.
