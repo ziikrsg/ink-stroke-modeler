@@ -14,7 +14,6 @@
 
 #include "ink_stroke_modeler/types.h"
 
-#include <cmath>
 #include <limits>
 #include <sstream>
 
@@ -23,6 +22,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "ink_stroke_modeler/internal/type_matchers.h"
+#include "ink_stroke_modeler/numbers.h"
 
 namespace ink {
 namespace stroke_model {
@@ -152,15 +152,15 @@ TEST(TypesTest, Vec2AbsoluteAngleTo) {
 
   angle = Vec2{0, 1}.AbsoluteAngleTo(Vec2{-1, 0});
   ASSERT_TRUE(angle.ok());
-  EXPECT_THAT(*angle, FloatEq(M_PI / 2));
+  EXPECT_THAT(*angle, FloatEq(kPi / 2));
 
   angle = Vec2{0, 1}.AbsoluteAngleTo(Vec2{1, 0});
   ASSERT_TRUE(angle.ok());
-  EXPECT_THAT(*angle, FloatEq(M_PI / 2));
+  EXPECT_THAT(*angle, FloatEq(kPi / 2));
 
   angle = Vec2{0, 1}.AbsoluteAngleTo(Vec2{0, -1});
   ASSERT_TRUE(angle.ok());
-  EXPECT_THAT(*angle, FloatEq(M_PI));
+  EXPECT_THAT(*angle, FloatEq(kPi));
 }
 
 TEST(TypesTest, Vec2AbsoluteAngleFromZeroVecIsZero) {
@@ -392,16 +392,35 @@ TEST(TypesTest, InputString) {
 
 TEST(TypesTest, ResultStream) {
   std::stringstream s;
-  s << Result{{1, 2}, {3, 4}, Time(5), 6, 7, 0.8};
-  EXPECT_EQ(s.str(),
-            "<Result: pos: (1, 2), velocity: (3, 4), time: 5, pressure: 6, "
-            "tilt: 7, orientation: 0.8>");
+  s << Result{
+      .position = {1, 2},
+      .velocity = {3, 4},
+      .acceleration = {5, 6},
+      .time = Time(7),
+      .pressure = 8,
+      .tilt = 9,
+      .orientation = 0.11,
+  };
+  EXPECT_EQ(
+      s.str(),
+      "<Result: pos: (1, 2), vel: (3, 4), acc: (5, 6), time: 7, pressure: 8, "
+      "tilt: 9, orientation: 0.11>");
 }
 
 TEST(TypesTest, ResultString) {
-  EXPECT_EQ(absl::StrFormat("%v", Result{{1, 2}, {3, 4}, Time(5), 6, 7, 0.8}),
-            "<Result: pos: (1, 2), velocity: (3, 4), time: 5, pressure: 6, "
-            "tilt: 7, orientation: 0.8>");
+  EXPECT_EQ(
+      absl::StrFormat("%v",
+                      Result{
+                          .position = {1, 2},
+                          .velocity = {3, 4},
+                          .acceleration = {5, 6},
+                          .time = Time(7),
+                          .pressure = 8,
+                          .tilt = 9,
+                          .orientation = 0.11,
+                      }),
+      "<Result: pos: (1, 2), vel: (3, 4), acc: (5, 6), time: 7, pressure: 8, "
+      "tilt: 9, orientation: 0.11>");
 }
 
 }  // namespace
