@@ -45,16 +45,39 @@ const KalmanPredictorParams kGoodKalmanParams{
 const StrokeModelParams kGoodStrokeModelParams{
     .wobble_smoother_params{
         .timeout = Duration(.5), .speed_floor = 1, .speed_ceiling = 20},
-    .position_modeler_params{.spring_mass_constant = .2, .drag_constant = 4},
+    .position_modeler_params{
+        .spring_mass_constant = .2,
+        .drag_constant = 4,
+        .loop_contraction_mitigation_params =
+            {.is_enabled = true,
+             .speed_lower_bound = 0,
+             .speed_upper_bound = 60,
+             .interpolation_strength_at_speed_lower_bound = 1,
+             .interpolation_strength_at_speed_upper_bound = 0,
+             .min_speed_sampling_window = Duration(0.6),
+             .min_discrete_speed_samples = 10}},
     .sampling_params{.min_output_rate = 3,
                      .end_of_stroke_stopping_distance = 1e-6,
                      .end_of_stroke_max_iterations = 1},
-    .stylus_state_modeler_params{.max_input_samples = 7},
+    .stylus_state_modeler_params{.max_input_samples = -1,
+                                 .use_stroke_normal_projection = true,
+                                 .min_input_samples = 10,
+                                 .min_sample_duration = Duration(0.05)},
     .prediction_params = StrokeEndPredictorParams{}};
 
 TEST(ParamsTest, ValidatePositionModelerParams) {
   EXPECT_TRUE(ValidatePositionModelerParams(
-                  {.spring_mass_constant = 1, .drag_constant = 3})
+                  {.spring_mass_constant = 1,
+                   .drag_constant = 3,
+                   .loop_contraction_mitigation_params =
+                       {.is_enabled = true,
+                        .speed_lower_bound = 0,
+                        .speed_upper_bound = 60,
+                        .interpolation_strength_at_speed_lower_bound = 1,
+                        .interpolation_strength_at_speed_upper_bound = 0,
+
+                        .min_speed_sampling_window = Duration(0.6),
+                        .min_discrete_speed_samples = 10}})
                   .ok());
 
   EXPECT_EQ(ValidatePositionModelerParams(
@@ -63,6 +86,37 @@ TEST(ParamsTest, ValidatePositionModelerParams) {
             absl::StatusCode::kInvalidArgument);
   EXPECT_EQ(ValidatePositionModelerParams(
                 {.spring_mass_constant = 1, .drag_constant = 0})
+                .code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(ValidatePositionModelerParams(
+                {.spring_mass_constant = 1,
+                 .drag_constant = 3,
+                 .loop_contraction_mitigation_params =
+                     {.is_enabled = true,
+                      .speed_lower_bound = 0,
+                      .speed_upper_bound = 5,
+                      .interpolation_strength_at_speed_lower_bound = 1,
+                      .interpolation_strength_at_speed_upper_bound = 0,
+
+                      .min_speed_sampling_window = Duration(0.6),
+                      .min_discrete_speed_samples = -10}})
+                .code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(ValidateStrokeModelParams(
+                {.position_modeler_params =
+                     {.spring_mass_constant = 1,
+                      .drag_constant = 3,
+                      .loop_contraction_mitigation_params =
+                          {.is_enabled = true,
+                           .speed_lower_bound = 0,
+                           .speed_upper_bound = 5,
+                           .interpolation_strength_at_speed_lower_bound = 1,
+                           .interpolation_strength_at_speed_upper_bound = 0,
+
+                           .min_speed_sampling_window = Duration(0.6),
+                           .min_discrete_speed_samples = 10}},
+                 .stylus_state_modeler_params = {.use_stroke_normal_projection =
+                                                     false}})
                 .code(),
             absl::StatusCode::kInvalidArgument);
 }
@@ -117,11 +171,33 @@ TEST(ParamsTest, ValidateSamplingParams) {
           .ok());
 }
 
-TEST(ParamsTest, ValidateStylusStateModelerParams) {
+TEST(ParamsTest, ValidateStylusStateModelerParamsDefaultProjection) {
   EXPECT_TRUE(ValidateStylusStateModelerParams({.max_input_samples = 1}).ok());
 
   EXPECT_EQ(ValidateStylusStateModelerParams({.max_input_samples = 0}).code(),
             absl::StatusCode::kInvalidArgument);
+}
+TEST(ParamsTest, ValidateStylusStateModelerParamsStrokeNormalProjection) {
+  EXPECT_TRUE(
+      ValidateStylusStateModelerParams({.max_input_samples = -1,
+                                        .use_stroke_normal_projection = true,
+                                        .min_input_samples = 2,
+                                        .min_sample_duration = Duration(.05)})
+          .ok());
+  EXPECT_EQ(
+      ValidateStylusStateModelerParams({.max_input_samples = -1,
+                                        .use_stroke_normal_projection = true,
+                                        .min_input_samples = 0,
+                                        .min_sample_duration = Duration(0.05)})
+          .code(),
+      absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(
+      ValidateStylusStateModelerParams({.max_input_samples = -1,
+                                        .use_stroke_normal_projection = false,
+                                        .min_input_samples = 10,
+                                        .min_sample_duration = Duration(-0.1)})
+          .code(),
+      absl::StatusCode::kInvalidArgument);
 }
 
 TEST(ParamsTest, ValidateWobbleSmootherParams) {
@@ -133,6 +209,14 @@ TEST(ParamsTest, ValidateWobbleSmootherParams) {
       ValidateWobbleSmootherParams(
           {.timeout = Duration(0), .speed_floor = 0, .speed_ceiling = 0})
           .ok());
+
+  // This is valid because `is_enabled` is false; otherwise, this would not be a
+  // valid configuration.
+  EXPECT_TRUE(ValidateWobbleSmootherParams({.is_enabled = false,
+                                            .timeout = Duration(-5),
+                                            .speed_floor = -3,
+                                            .speed_ceiling = -4})
+                  .ok());
 
   EXPECT_EQ(ValidateWobbleSmootherParams(
                 {.timeout = Duration(-1), .speed_floor = 2, .speed_ceiling = 5})
@@ -253,7 +337,7 @@ TEST(ParamsTest, ValidateStrokeModelParams) {
   }
   {
     auto bad_params = kGoodStrokeModelParams;
-    bad_params.stylus_state_modeler_params.max_input_samples = 0;
+    bad_params.stylus_state_modeler_params.min_input_samples = 0;
     EXPECT_EQ(ValidateStrokeModelParams(bad_params).code(),
               absl::StatusCode::kInvalidArgument);
   }

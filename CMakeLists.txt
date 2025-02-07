@@ -15,8 +15,6 @@
 cmake_minimum_required(VERSION 3.19)
 Project(InkStrokeModeler VERSION 0.1.0 LANGUAGES CXX)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++20")
-
 if(CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -59,7 +57,7 @@ set(ABSL_PROPAGATE_CXX_STD ON)
 set(gtest_URL https://github.com/google/googletest.git)
 set(gtest_TAG f8d7d77c06936315286eb55f8de22cd23c188571)  # v1.14.0
 set(absl_URL https://github.com/abseil/abseil-cpp.git)
-set(absl_TAG 2f9e432cce407ce0ae50676696666f33a77d42ac)  # 20240116.0
+set(absl_TAG 2f9e432cce407ce0ae50676696666f33a77d42ac)  # 20240116.1
 
 if(INK_STROKE_MODELER_ENABLE_INSTALL)
   set(ABSL_ENABLE_INSTALL ON)
@@ -105,7 +103,7 @@ if(CMAKE_CXX_STANDARD LESS 20)
       "${PROJECT_NAME} requires CMAKE_CXX_STANDARD >= 20 (got: ${CMAKE_CXX_STANDARD})")
 endif()
 
-include_directories("${CMAKE_SOURCE_DIR}")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 include(InkBazelEquivalents)
 

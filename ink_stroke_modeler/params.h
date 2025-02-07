@@ -17,7 +17,6 @@
 #ifndef INK_STROKE_MODELER_PARAMS_H_
 #define INK_STROKE_MODELER_PARAMS_H_
 
-#include <cmath>
 #include <variant>
 
 #include "absl/status/status.h"
@@ -53,6 +52,63 @@ struct PositionModelerParams {
   // The ratio of the pen's velocity that is subtracted from the pen's
   // acceleration per unit time, to simulate drag.
   float drag_constant = 72.f;
+
+  // These parameters control the behavior of the loop contraction mitigation.
+  // The mitigation corrects for loop contraction by interpolating between the
+  // result from the spring model, and the nearest point on the raw input
+  // polyline, based on the a moving average of the speed of the raw inputs.
+  struct LoopContractionMitigationParameters {
+    // 'is_enabled' turns loop mitigation on or off. If 'is_enabled' is false,
+    // all other params are being ignored. If 'is_enabled' is true, the other
+    // params must be set to valid values and
+    // `StylusStateModelerParams::project_to_segment_along_normal_is_enabled`
+    // must be set to true.
+    // We recommend enabling this in order to get increased accuracy on loops;
+    // however, this defaults to false to preserve behavior for existing uses.
+    bool is_enabled = false;
+
+    // The slowest speed at which to start applying the mitigation. At this
+    // speed, the interpolation value will be equal to
+    // `interpolation_strength_at_speed_lower_bound`.
+    // When `is_enabled` is true, this must be <= `speed_upper_bound` and >= 0.
+    float speed_lower_bound = -1;
+    // The fastest speed at which to start applying the mitigation. At this
+    // speed, the interpolation value will be equal to
+    // `interpolation_strength_at_speed_upper_bound`.
+    // When `is_enabled` is true, this must be >= `speed_lower_bound` and >= 0.
+    float speed_upper_bound = -1;
+
+    // The interpolation value to use when the speed is equal to
+    // `speed_lower_bound`. A value of 1 results in no mitigation, using the
+    // unaltered result of the spring model. A value of 0 uses the value from
+    // the raw input polyline, with no influence from the spring model.
+    // When `is_enabled` is true, this must be >=
+    // `interpolation_strength_at_speed_upper_bound` and <= 1.
+    float interpolation_strength_at_speed_lower_bound = -1;
+    // The interpolation value to use when the speed is equal to
+    // `speed_upper_bound`. A value of 1 results in no mitigation, using the
+    // unaltered result of the spring model. A value of 0 uses the value from
+    // the raw input polyline, with no influence from the spring model.
+    // When `is_enabled` is true, this must be <=
+    // `interpolation_strength_at_speed_lower_bound` and >= 0.
+    float interpolation_strength_at_speed_upper_bound = -1;
+
+    // These parameters determine the number of samples to use when
+    // calculating the moving average of the speed: the actual number of
+    // samples is the smallest number >= `min_discrete_speed_samples`
+    // such that the difference in time between the first and last
+    // sample is >= `min_speed_sampling_window`. If we have not yet
+    // received enough inputs to satisfy these conditions, then the
+    // moving average will be calculated using all available inputs.
+    // A higher number results in a smoother transition between low and
+    // high speeds (which can reduce artifacts from noisy inputs) at the
+    // cost of adding latency to the mitigation response.
+    // Both values must be > 0.
+    Duration min_speed_sampling_window{-1};
+    int min_discrete_speed_samples = -1;
+  };
+
+  LoopContractionMitigationParameters loop_contraction_mitigation_params;
 };
 
 // These parameters are used for sampling.
@@ -88,17 +144,58 @@ struct SamplingParams {
   double max_estimated_angle_to_traverse_per_input = -1;
 };
 
-// These parameters are used modeling the state of the stylus once the position
-// has been modeled.
+// These parameters are used for modeling the non-positional state of the stylus
+// (i.e. pressure, tilt, and orientation) once the position has been modeled.
+//
+// To calculate the non-positional state, we project the modeled position of the
+// tip, to a polyline made up of the most recent raw inputs, and then
+// interpolate pressure, tilt, and orientation along that raw input polyline.
+// These parameters determine the projection method, and how many raw input
+// samples to include in the polyline.
 struct StylusStateModelerParams {
-  // The maximum number of raw inputs to look at when finding the nearest states
-  // for interpolation.
+  // This determines the number of recent raw input samples to use when
+  // 'use_stroke_normal_projection` is false; we accumulate `max_input_samples`
+  // samples, then discard old samples as we receive new inputs.
+  // If `use_stroke_normal_projection` is false, this must be greater than zero.
+  // If `use_stroke_normal_projection` is true, this will be ignored, and
+  // `min_input_samples` and `min_sample_duration` will be used instead.
   int max_input_samples = 10;
+
+  // This determines the method used to project to the raw input polyline.
+  // * If false, we take the point on the polyline closest to the modeled tip
+  //   position.
+  // * If true, we cast a pair of rays in opposite directions normal to the
+  //   stroke direction from the modeled tip point and find the intersection
+  //   with the raw input polyline. If multiple intersections are found, we use
+  //   a heuristic to determine the best choice.
+  // We recommend enabling this in order to get increased accuracy for pressure,
+  // tilt, and orientation; however, this defaults to false to preserve behavior
+  // for existing uses.
+  bool use_stroke_normal_projection = false;
+
+  // These determine the number of recent raw input samples to use when
+  // `use_stroke_normal_projection` is true: we accumulate samples until both of
+  // the following conditions are true:
+  // * We have at least `min_input_samples` samples
+  // * The difference in `time` between the first and last sample is greater
+  //   than `min_sample_duration`
+  // As we receive additional raw inputs, we discard old samples once they are
+  // no longer required to maintain those conditions.
+  // If `use_stroke_normal_projection` is true, both of these must be > zero.
+  // If `use_stroke_normal_projection` is false, these will be ignored, and
+  // `max_input_samples` will be used instead.
+  int min_input_samples = -1;
+  Duration min_sample_duration{-1};
 };
 
 // These parameters are used for applying smoothing to the input to reduce
 // wobble in the prediction.
 struct WobbleSmootherParams {
+  // If true, the wobble smoothing will be applied to the stroke. If false, the
+  // wobble smoothing step will be skipped, and the remainder of the parameters
+  // in the struct will be ignored.
+  bool is_enabled = true;
+
   // The length of the window over which the moving average of speed and
   // position are calculated.
   //
@@ -233,15 +330,18 @@ struct StrokeModelParams {
   ExperimentalParams experimental_params;
 };
 
-// These validation functions will return an error if the given parameters are
+// This validation function will return an error if the given parameter is
 // invalid.
+absl::Status ValidateStrokeModelParams(const StrokeModelParams& params);
+
+// Deprecated:The following validation functions are deprecated, use
+// `ValidateStrokeModelParams` instead.
 absl::Status ValidatePositionModelerParams(const PositionModelerParams& params);
 absl::Status ValidateSamplingParams(const SamplingParams& params);
 absl::Status ValidateStylusStateModelerParams(
     const StylusStateModelerParams& params);
 absl::Status ValidateWobbleSmootherParams(const WobbleSmootherParams& params);
 absl::Status ValidatePredictionParams(const PredictionParams& params);
-absl::Status ValidateStrokeModelParams(const StrokeModelParams& params);
 
 }  // namespace stroke_model
 }  // namespace ink
