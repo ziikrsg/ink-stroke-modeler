@@ -22,8 +22,8 @@
 #include <variant>
 #include <vector>
 
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
+//#include "absl/status/status.h"
+//#include "absl/status/statusor.h"
 #include "internal/internal_types.h"
 #include "internal/loop_contraction_mitigation_modeler.h"
 #include "internal/position_modeler.h"
@@ -76,10 +76,10 @@ void ModelStylus(
 
 }  // namespace
 
-absl::Status StrokeModeler::Reset(
+int StrokeModeler::Reset(
     const StrokeModelParams &stroke_model_params) {
   if (auto status = ValidateStrokeModelParams(stroke_model_params);
-      !status.ok()) {
+      status != 0) {
     return status;
   }
 
@@ -108,16 +108,17 @@ absl::Status StrokeModeler::Reset(
   loop_contraction_mitigation_modeler_.Reset(
       stroke_model_params_->position_modeler_params
           .loop_contraction_mitigation_params);
-  return absl::OkStatus();
+  return 0;
 }
 
-absl::Status StrokeModeler::Reset() {
+int StrokeModeler::Reset() {
   if (!stroke_model_params_.has_value()) {
-    return absl::FailedPreconditionError(
-        "Initial call to Reset must pass StrokeModelParams.");
+    return -1;
+//    return absl::FailedPreconditionError(
+//        "Initial call to Reset must pass StrokeModelParams.");
   }
   ResetInternal();
-  return absl::OkStatus();
+  return 0;
 }
 
 void StrokeModeler::ResetInternal() {
@@ -125,24 +126,27 @@ void StrokeModeler::ResetInternal() {
   save_active_ = false;
 }
 
-absl::Status StrokeModeler::Update(const Input &input,
+int StrokeModeler::Update(const Input &input,
                                    std::vector<Result> &results) {
   if (!stroke_model_params_.has_value()) {
-    return absl::FailedPreconditionError(
-        "Stroke model has not yet been initialized");
+    return -1;
+//    return absl::FailedPreconditionError(
+//        "Stroke model has not yet been initialized");
   }
 
-  if (absl::Status status = ValidateInput(input); !status.ok()) {
+  if (int status = ValidateInput(input); status != 0) {
     return status;
   }
 
   if (last_input_) {
     if (last_input_->input == input) {
-      return absl::InvalidArgumentError("Received duplicate input");
+      return -1;
+//      return absl::InvalidArgumentError("Received duplicate input");
     }
 
     if (input.time < last_input_->input.time) {
-      return absl::InvalidArgumentError("Inputs travel backwards in time");
+      return -1;
+//      return absl::InvalidArgumentError("Inputs travel backwards in time");
     }
   }
 
@@ -154,25 +158,29 @@ absl::Status StrokeModeler::Update(const Input &input,
     case Input::EventType::kUp:
       return ProcessUpEvent(input, results);
   }
-  return absl::InvalidArgumentError("Invalid EventType.");
+  return -1;
+//  return absl::InvalidArgumentError("Invalid EventType.");
 }
 
-absl::Status StrokeModeler::Predict(std::vector<Result> &results) const {
+int StrokeModeler::Predict(std::vector<Result> &results) const {
   results.clear();
 
   if (!stroke_model_params_.has_value()) {
-    return absl::FailedPreconditionError(
-        "Stroke model has not yet been initialized");
+    return -1;
+//    return absl::FailedPreconditionError(
+//        "Stroke model has not yet been initialized");
   }
 
   if (predictor_ == nullptr) {
-    return absl::FailedPreconditionError(
-        "Prediction has been disabled by StrokeModelParams.");
+    return -1;
+//    return absl::FailedPreconditionError(
+//        "Prediction has been disabled by StrokeModelParams.");
   }
 
   if (last_input_ == std::nullopt) {
-    return absl::FailedPreconditionError(
-        "Cannot construct prediction when no stroke is in-progress");
+    return -1;
+//    return absl::FailedPreconditionError(
+//        "Cannot construct prediction when no stroke is in-progress");
   }
 
   predictor_->ConstructPrediction(position_modeler_.CurrentState(),
@@ -182,14 +190,15 @@ absl::Status StrokeModeler::Predict(std::vector<Result> &results) const {
       loop_contraction_mitigation_modeler_;
   ModelStylus(tip_state_buffer_, stylus_state_modeler_, prediction_loop_modeler,
               results, last_input_->input.time);
-  return absl::OkStatus();
+  return 0;
 }
 
-absl::Status StrokeModeler::ProcessDownEvent(const Input &input,
+int StrokeModeler::ProcessDownEvent(const Input &input,
                                              std::vector<Result> &result) {
   if (last_input_) {
-    return absl::FailedPreconditionError(
-        "Received down event while stroke is in-progress");
+    return -1;
+//    return absl::FailedPreconditionError(
+//        "Received down event while stroke is in-progress");
   }
 
   // Note that many of the sub-modelers require some knowledge about the stroke
@@ -226,30 +235,31 @@ absl::Status StrokeModeler::ProcessDownEvent(const Input &input,
                     .pressure = input.pressure,
                     .tilt = input.tilt,
                     .orientation = input.orientation});
-  return absl::OkStatus();
+  return 0;
 }
 
-absl::Status StrokeModeler::ProcessUpEvent(const Input &input,
+int StrokeModeler::ProcessUpEvent(const Input &input,
                                            std::vector<Result> &results) {
   if (!last_input_) {
-    return absl::FailedPreconditionError(
-        "Received up event while no stroke is in-progress");
+    return -1;
+//    return absl::FailedPreconditionError(
+//        "Received up event while no stroke is in-progress");
   }
 
-  absl::StatusOr<int> n_steps = NumberOfStepsBetweenInputs(
+  int n_steps = NumberOfStepsBetweenInputs(
       position_modeler_.CurrentState(), last_input_->input, input,
       stroke_model_params_->sampling_params,
       stroke_model_params_->position_modeler_params);
-  if (!n_steps.ok()) {
-    return n_steps.status();
+  if (n_steps < 0) {
+    return -1;
   }
   tip_state_buffer_.clear();
   tip_state_buffer_.reserve(
-      static_cast<size_t>(*n_steps) +
+      static_cast<size_t>(n_steps) +
       stroke_model_params_->sampling_params.end_of_stroke_max_iterations);
   position_modeler_.UpdateAlongLinearPath(
       last_input_->corrected_position, last_input_->input.time, input.position,
-      input.time, *n_steps, std::back_inserter(tip_state_buffer_));
+      input.time, n_steps, std::back_inserter(tip_state_buffer_));
 
   position_modeler_.ModelEndOfStroke(
       input.position,
@@ -275,14 +285,15 @@ absl::Status StrokeModeler::ProcessUpEvent(const Input &input,
   // This indicates that we've finished the stroke.
   last_input_ = std::nullopt;
 
-  return absl::OkStatus();
+  return 0;
 }
 
-absl::Status StrokeModeler::ProcessMoveEvent(const Input &input,
+int StrokeModeler::ProcessMoveEvent(const Input &input,
                                              std::vector<Result> &results) {
   if (!last_input_) {
-    return absl::FailedPreconditionError(
-        "Received move event while no stroke is in-progress");
+    return -1;
+//    return absl::FailedPreconditionError(
+//        "Received move event while no stroke is in-progress");
   }
 
   Vec2 corrected_position = wobble_smoother_.Update(input.position, input.time);
@@ -293,18 +304,18 @@ absl::Status StrokeModeler::ProcessMoveEvent(const Input &input,
                                    .orientation = input.orientation,
                                });
 
-  absl::StatusOr<int> n_steps = NumberOfStepsBetweenInputs(
+  int n_steps = NumberOfStepsBetweenInputs(
       position_modeler_.CurrentState(), last_input_->input, input,
       stroke_model_params_->sampling_params,
       stroke_model_params_->position_modeler_params);
-  if (!n_steps.ok()) {
-    return n_steps.status();
+  if (n_steps < 0) {
+    return -1;
   }
   tip_state_buffer_.clear();
-  tip_state_buffer_.reserve(*n_steps);
+  tip_state_buffer_.reserve(n_steps);
   position_modeler_.UpdateAlongLinearPath(
       last_input_->corrected_position, last_input_->input.time,
-      corrected_position, input.time, *n_steps,
+      corrected_position, input.time, n_steps,
       std::back_inserter(tip_state_buffer_));
 
   if (predictor_ != nullptr) {
@@ -314,7 +325,7 @@ absl::Status StrokeModeler::ProcessMoveEvent(const Input &input,
   ModelStylus(tip_state_buffer_, stylus_state_modeler_,
               loop_contraction_mitigation_modeler_, results,
               last_input_->input.time);
-  return absl::OkStatus();
+  return 0;
 }
 
 void StrokeModeler::Save() {

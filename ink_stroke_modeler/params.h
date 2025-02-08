@@ -19,7 +19,7 @@
 
 #include <variant>
 
-#include "absl/status/status.h"
+//#include "absl/status/status.h"
 #include "types.h"
 
 namespace ink {
@@ -332,16 +332,16 @@ struct StrokeModelParams {
 
 // This validation function will return an error if the given parameter is
 // invalid.
-absl::Status ValidateStrokeModelParams(const StrokeModelParams& params);
+int ValidateStrokeModelParams(const StrokeModelParams& params);
 
 // Deprecated:The following validation functions are deprecated, use
 // `ValidateStrokeModelParams` instead.
-absl::Status ValidatePositionModelerParams(const PositionModelerParams& params);
-absl::Status ValidateSamplingParams(const SamplingParams& params);
-absl::Status ValidateStylusStateModelerParams(
+int ValidatePositionModelerParams(const PositionModelerParams& params);
+int ValidateSamplingParams(const SamplingParams& params);
+int ValidateStylusStateModelerParams(
     const StylusStateModelerParams& params);
-absl::Status ValidateWobbleSmootherParams(const WobbleSmootherParams& params);
-absl::Status ValidatePredictionParams(const PredictionParams& params);
+int ValidateWobbleSmootherParams(const WobbleSmootherParams& params);
+int ValidatePredictionParams(const PredictionParams& params);
 
 }  // namespace stroke_model
 }  // namespace ink

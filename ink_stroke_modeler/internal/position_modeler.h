@@ -19,7 +19,7 @@
 
 #include <optional>
 
-#include "absl/status/statusor.h"
+//#include "absl/status/statusor.h"
 #include "internal_types.h"
 #include "utils.h"
 #include "../params.h"
@@ -30,7 +30,7 @@ namespace stroke_model {
 
 // Returns the number of input steps to be interpolated (and therefore the
 // number of outputs to be modeled) between two inputs.
-absl::StatusOr<int> NumberOfStepsBetweenInputs(
+int NumberOfStepsBetweenInputs(
     const TipState& tip_state, const Input& start, const Input& end,
     const SamplingParams& sampling_params,
     const PositionModelerParams& position_modeler_params);

@@ -16,9 +16,9 @@
 
 #include <variant>
 
-#include "absl/status/status.h"
-#include "absl/strings/string_view.h"
-#include "absl/strings/substitute.h"
+//#include "absl/status/status.h"
+//#include "absl/strings/string_view.h"
+//#include "absl/strings/substitute.h"
 #include "internal/validation.h"
 #include "numbers.h"
 #include "types.h"
@@ -27,7 +27,7 @@
 // return an OK status, returns and propagates the status.
 #define RETURN_IF_ERROR(expr)                              \
   do {                                                     \
-    if (auto status = (expr); !status.ok()) return status; \
+    if (auto status = (expr); status != 0) return status; \
   } while (false)
 
 namespace ink {
@@ -45,55 +45,59 @@ const Duration kMaxSamplingWindow = Duration(10000);
 
 }  // namespace
 
-absl::Status ValidateLoopContractionMitigationParameters(
+int ValidateLoopContractionMitigationParameters(
     const PositionModelerParams::LoopContractionMitigationParameters& params) {
-  if (!params.is_enabled) return absl::OkStatus();
+  if (!params.is_enabled) return 0;
   if (params.speed_lower_bound > params.speed_upper_bound ||
       params.speed_lower_bound < 0) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "LoopContractionMitigationParameters::speed_lower_bound must be "
-        "smaller or equal to "
-        "LoopContractionMitigationParameters::speed_upper_bound and greater "
-        "than or equal to 0. Actual "
-        "values: lower_bound:$0, upper_bound: $1",
-        params.speed_lower_bound, params.speed_upper_bound));
+    return -1;
+//    return absl::InvalidArgumentError(absl::Substitute(
+//        "LoopContractionMitigationParameters::speed_lower_bound must be "
+//        "smaller or equal to "
+//        "LoopContractionMitigationParameters::speed_upper_bound and greater "
+//        "than or equal to 0. Actual "
+//        "values: lower_bound:$0, upper_bound: $1",
+//        params.speed_lower_bound, params.speed_upper_bound));
   }
 
   if (params.interpolation_strength_at_speed_lower_bound <
           params.interpolation_strength_at_speed_upper_bound ||
       params.interpolation_strength_at_speed_lower_bound > 1 ||
       params.interpolation_strength_at_speed_upper_bound < 0) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "LoopContractionMitigationParameters::interpolation_strength_at_speed_"
-        "lower_bound must be greater or equal to "
-        "LoopContractionMitigationParameters::interpolation_strength_at_speed_"
-        "upper_bound and in the interval [0, 1]. Actual values: "
-        "at_lower_bound:$0, at_upper_bound: $1",
-        params.interpolation_strength_at_speed_lower_bound,
-        params.interpolation_strength_at_speed_upper_bound));
+    return -1;
+//    return absl::InvalidArgumentError(absl::Substitute(
+//        "LoopContractionMitigationParameters::interpolation_strength_at_speed_"
+//        "lower_bound must be greater or equal to "
+//        "LoopContractionMitigationParameters::interpolation_strength_at_speed_"
+//        "upper_bound and in the interval [0, 1]. Actual values: "
+//        "at_lower_bound:$0, at_upper_bound: $1",
+//        params.interpolation_strength_at_speed_lower_bound,
+//        params.interpolation_strength_at_speed_upper_bound));
   }
 
   if (params.min_discrete_speed_samples < 1 ||
       params.min_discrete_speed_samples > kMaxDiscreteSamples) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "LoopContractionMitigationParameters::min_discrete_"
-        "speed_samples must be in the "
-        "interval [1, $0]. Actual value: $1",
-        kMaxDiscreteSamples, params.min_discrete_speed_samples));
+    return -1;
+//    return absl::InvalidArgumentError(absl::Substitute(
+//        "LoopContractionMitigationParameters::min_discrete_"
+//        "speed_samples must be in the "
+//        "interval [1, $0]. Actual value: $1",
+//        kMaxDiscreteSamples, params.min_discrete_speed_samples));
   }
 
   if (params.min_speed_sampling_window <= Duration(0) ||
       params.min_speed_sampling_window > kMaxSamplingWindow) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "LoopContractionMitigationParameters::min_speed_"
-        "sampling_windowmust be in the "
-        "interval [1, $0]. Actual value: $1",
-        kMaxSamplingWindow.Value(), params.min_speed_sampling_window.Value()));
+    return -1;
+//    return absl::InvalidArgumentError(absl::Substitute(
+//        "LoopContractionMitigationParameters::min_speed_"
+//        "sampling_windowmust be in the "
+//        "interval [1, $0]. Actual value: $1",
+//        kMaxSamplingWindow.Value(), params.min_speed_sampling_window.Value()));
   }
-  return absl::OkStatus();
+  return 0;
 }
 
-absl::Status ValidatePositionModelerParams(
+int ValidatePositionModelerParams(
     const PositionModelerParams& params) {
   RETURN_IF_ERROR(ValidateLoopContractionMitigationParameters(
       params.loop_contraction_mitigation_params));
@@ -104,7 +108,7 @@ absl::Status ValidatePositionModelerParams(
                                  "PositionModelerParams::drag_ratio");
 }
 
-absl::Status ValidateSamplingParams(const SamplingParams& params) {
+int ValidateSamplingParams(const SamplingParams& params) {
   RETURN_IF_ERROR(ValidateGreaterThanZero(params.min_output_rate,
                                           "SamplingParams::min_output_rate"));
   RETURN_IF_ERROR(ValidateGreaterThanZero(
@@ -114,10 +118,11 @@ absl::Status ValidateSamplingParams(const SamplingParams& params) {
       ValidateGreaterThanZero(params.end_of_stroke_max_iterations,
                               "SamplingParams::end_of_stroke_max_iterations"));
   if (params.end_of_stroke_max_iterations > kMaxEndOfStrokeMaxIterations) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "SamplingParams::end_of_stroke_max_iterations must be "
-        "at most $0. Actual value: $1",
-        kMaxEndOfStrokeMaxIterations, params.end_of_stroke_max_iterations));
+    return -1;
+//    return absl::InvalidArgumentError(absl::Substitute(
+//        "SamplingParams::end_of_stroke_max_iterations must be "
+//        "at most $0. Actual value: $1",
+//        kMaxEndOfStrokeMaxIterations, params.end_of_stroke_max_iterations));
   }
   RETURN_IF_ERROR(ValidateGreaterThanZero(
       params.max_outputs_per_call, "SamplingParams::max_outputs_per_call"));
@@ -126,16 +131,17 @@ absl::Status ValidateSamplingParams(const SamplingParams& params) {
         params.max_estimated_angle_to_traverse_per_input,
         "SamplingParams::max_estimated_angle_to_traverse_per_input"));
     if (params.max_estimated_angle_to_traverse_per_input >= kPi) {
-      return absl::InvalidArgumentError(absl::Substitute(
-          "SamplingParams::max_estimated_angle_to_traverse_per_input must be "
-          "less than kPi ($0). Actual value: $1",
-          kPi, params.max_estimated_angle_to_traverse_per_input));
+      return -1;
+//      return absl::InvalidArgumentError(absl::Substitute(
+//          "SamplingParams::max_estimated_angle_to_traverse_per_input must be "
+//          "less than kPi ($0). Actual value: $1",
+//          kPi, params.max_estimated_angle_to_traverse_per_input));
     }
   }
-  return absl::OkStatus();
+  return 0;
 }
 
-absl::Status ValidateStylusStateModelerParams(
+int ValidateStylusStateModelerParams(
     const StylusStateModelerParams& params) {
   if (params.use_stroke_normal_projection) {
     RETURN_IF_ERROR(
@@ -151,8 +157,8 @@ absl::Status ValidateStylusStateModelerParams(
   }
 }
 
-absl::Status ValidateWobbleSmootherParams(const WobbleSmootherParams& params) {
-  if (!params.is_enabled) return absl::OkStatus();
+int ValidateWobbleSmootherParams(const WobbleSmootherParams& params) {
+  if (!params.is_enabled) return 0;
 
   RETURN_IF_ERROR(ValidateGreaterThanOrEqualToZero(
       params.timeout.Value(), "WobbleSmootherParams::timeout"));
@@ -161,18 +167,19 @@ absl::Status ValidateWobbleSmootherParams(const WobbleSmootherParams& params) {
   RETURN_IF_ERROR(ValidateIsFiniteNumber(
       params.speed_ceiling, "WobbleSmootherParams::speed_ceiling"));
   if (params.speed_ceiling < params.speed_floor) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "WobbleSmootherParams::speed_ceiling must be greater than or "
-        "equal to WobbleSmootherParams::speed_floor ($0). Actual "
-        "value: $1",
-        params.speed_floor, params.speed_ceiling));
+    return -1;
+//    return absl::InvalidArgumentError(absl::Substitute(
+//        "WobbleSmootherParams::speed_ceiling must be greater than or "
+//        "equal to WobbleSmootherParams::speed_floor ($0). Actual "
+//        "value: $1",
+//        params.speed_floor, params.speed_ceiling));
   }
-  return absl::OkStatus();
+  return 0;
 }
 
 namespace {
 
-absl::Status ValidateKalmanPredictorParams(
+int ValidateKalmanPredictorParams(
     const KalmanPredictorParams& kalman_params) {
   RETURN_IF_ERROR(ValidateGreaterThanZero(
       kalman_params.process_noise, "KalmanPredictorParams::process_noise"));
@@ -212,48 +219,51 @@ absl::Status ValidateKalmanPredictorParams(
       confidence_params.max_travel_speed,
       "KalmanPredictorParams::ConfidenceParams::max_travel_speed"));
   if (confidence_params.max_travel_speed < confidence_params.min_travel_speed) {
-    return absl::InvalidArgumentError(
-        absl::Substitute("KalmanPredictorParams::ConfidenceParams::max_"
-                         "travel_speed must be greater than or equal to "
-                         "KalmanPredictorParams::ConfidenceParams::min_"
-                         "travel_speed ($0). Actual value: $1",
-                         confidence_params.min_travel_speed,
-                         confidence_params.max_travel_speed));
+    return -1;
+//    return absl::InvalidArgumentError(
+//        absl::Substitute("KalmanPredictorParams::ConfidenceParams::max_"
+//                         "travel_speed must be greater than or equal to "
+//                         "KalmanPredictorParams::ConfidenceParams::min_"
+//                         "travel_speed ($0). Actual value: $1",
+//                         confidence_params.min_travel_speed,
+//                         confidence_params.max_travel_speed));
   }
   RETURN_IF_ERROR(ValidateGreaterThanZero(
       confidence_params.max_linear_deviation,
       "KalmanPredictorParams::ConfidenceParams::max_linear_deviation"));
   if (confidence_params.baseline_linearity_confidence < 0 ||
       confidence_params.baseline_linearity_confidence > 1) {
-    return absl::InvalidArgumentError(absl::Substitute(
-        "KalmanPredictorParams::ConfidenceParams::baseline_linearity_"
-        "confidence must lie in the interval [0, 1]. Actual value: $0",
-        confidence_params.baseline_linearity_confidence));
+    return -1;
+//    return absl::InvalidArgumentError(absl::Substitute(
+//        "KalmanPredictorParams::ConfidenceParams::baseline_linearity_"
+//        "confidence must lie in the interval [0, 1]. Actual value: $0",
+//        confidence_params.baseline_linearity_confidence));
   }
-  return absl::OkStatus();
+  return 0;
 }
 
 }  // namespace
 
-absl::Status ValidatePredictionParams(const PredictionParams& params) {
+int ValidatePredictionParams(const PredictionParams& params) {
   if (const auto* kalman_params = std::get_if<KalmanPredictorParams>(&params)) {
     return ValidateKalmanPredictorParams(*kalman_params);
   }
 
   // StrokeEndPredictorParams and DisabledPredictorParams have nothing to
   // validate.
-  return absl::OkStatus();
+  return 0;
 }
 
-absl::Status ValidateStrokeModelParams(const StrokeModelParams& params) {
+int ValidateStrokeModelParams(const StrokeModelParams& params) {
   if (params.position_modeler_params.loop_contraction_mitigation_params
           .is_enabled &&
       !params.stylus_state_modeler_params.use_stroke_normal_projection) {
-    return absl::InvalidArgumentError(
-        "`StylusStateModelerParams::project_to_segment_along_normal_is_enabled`"
-        " must be true if "
-        "`PositionModelerParams::LoopContractionMitigationParameters::is_"
-        "enabled` is true.");
+    return -1;
+//    return absl::InvalidArgumentError(
+//        "`StylusStateModelerParams::project_to_segment_along_normal_is_enabled`"
+//        " must be true if "
+//        "`PositionModelerParams::LoopContractionMitigationParameters::is_"
+//        "enabled` is true.");
   }
   RETURN_IF_ERROR(ValidateWobbleSmootherParams(params.wobble_smoother_params));
   RETURN_IF_ERROR(

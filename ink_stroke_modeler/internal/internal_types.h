@@ -35,10 +35,10 @@ struct TipState {
 
 std::string ToFormattedString(const TipState& tip_state);
 
-template <typename Sink>
-void AbslStringify(Sink& sink, const TipState& tip_state) {
-  sink.Append(ToFormattedString(tip_state));
-}
+//template <typename Sink>
+//void AbslStringify(Sink& sink, const TipState& tip_state) {
+//  sink.Append(ToFormattedString(tip_state));
+//}
 
 // This struct contains information about the state of the stylus. See the
 // corresponding fields on the Input struct for more info.
@@ -51,10 +51,10 @@ struct StylusState {
 bool operator==(const StylusState& lhs, const StylusState& rhs);
 std::string ToFormattedString(const StylusState& stylus_state);
 
-template <typename Sink>
-void AbslStringify(Sink& sink, const StylusState& stylus_state) {
-  sink.Append(ToFormattedString(stylus_state));
-}
+//template <typename Sink>
+//void AbslStringify(Sink& sink, const StylusState& stylus_state) {
+//  sink.Append(ToFormattedString(stylus_state));
+//}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Inline function definitions
