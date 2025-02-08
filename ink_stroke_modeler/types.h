@@ -21,8 +21,8 @@
 #include <ostream>
 #include <string>
 
-#include "absl/status/status.h"
-#include "absl/status/statusor.h"
+//#include "absl/status/status.h"
+//#include "absl/status/statusor.h"
 
 namespace ink {
 namespace stroke_model {
@@ -37,7 +37,7 @@ struct Vec2 {
 
   // The difference in angle between the vector and another vector in radians
   // [0, pi]. Returns an error status if either of the inputs is non-finite.
-  absl::StatusOr<float> AbsoluteAngleTo(Vec2 other) const;
+  float AbsoluteAngleTo(Vec2 other) const;
 
   // This calculates the dot product between the two vectors.
   static float DotProduct(Vec2 a, Vec2 b);
@@ -60,10 +60,10 @@ Vec2& operator/=(Vec2& lhs, float scalar);
 
 std::string ToFormattedString(Vec2 vec);
 
-template <typename Sink>
-void AbslStringify(Sink& sink, Vec2 vec) {
-  sink.Append(ToFormattedString(vec));
-}
+// template <typename Sink>
+// void AbslStringify(Sink& sink, Vec2 vec) {
+//   sink.Append(ToFormattedString(vec));
+// }
 
 std::ostream& operator<<(std::ostream& stream, Vec2 v);
 
@@ -96,10 +96,10 @@ Duration& operator/=(Duration& duration, double scalar);
 
 std::string ToFormattedString(Duration duration);
 
-template <typename Sink>
-void AbslStringify(Sink& sink, Duration duration) {
-  sink.Append(ToFormattedString(duration));
-}
+// template <typename Sink>
+// void AbslStringify(Sink& sink, Duration duration) {
+//   sink.Append(ToFormattedString(duration));
+// }
 
 std::ostream& operator<<(std::ostream& s, Duration duration);
 
@@ -129,10 +129,10 @@ Time& operator-=(Time& time, Duration duration);
 
 std::string ToFormattedString(Time time);
 
-template <typename Sink>
-void AbslStringify(Sink& sink, Time time) {
-  sink.Append(ToFormattedString(time));
-}
+// template <typename Sink>
+// void AbslStringify(Sink& sink, Time time) {
+//   sink.Append(ToFormattedString(time));
+// }
 
 std::ostream& operator<<(std::ostream& s, Time time);
 
@@ -169,23 +169,23 @@ struct Input {
   friend bool operator==(const Input&, const Input&) = default;
 };
 
-absl::Status ValidateInput(const Input& input);
+int ValidateInput(const Input& input);
 
 std::string ToFormattedString(Input::EventType event_type);
 
-template <typename Sink>
-void AbslStringify(Sink& sink, Input::EventType event_type) {
-  sink.Append(ToFormattedString(event_type));
-}
+// template <typename Sink>
+// void AbslStringify(Sink& sink, Input::EventType event_type) {
+//   sink.Append(ToFormattedString(event_type));
+// }
 
 std::ostream& operator<<(std::ostream& s, Input::EventType event_type);
 
 std::string ToFormattedString(const Input& input);
 
-template <typename Sink>
-void AbslStringify(Sink& sink, const Input& input) {
-  sink.Append(ToFormattedString(input));
-}
+// template <typename Sink>
+// void AbslStringify(Sink& sink, const Input& input) {
+//   sink.Append(ToFormattedString(input));
+// }
 
 std::ostream& operator<<(std::ostream& s, const Input& input);
 
@@ -210,10 +210,10 @@ struct Result {
 
 std::string ToFormattedString(const Result& result);
 
-template <typename Sink>
-void AbslStringify(Sink& sink, const Result& result) {
-  sink.Append(ToFormattedString(result));
-}
+// template <typename Sink>
+// void AbslStringify(Sink& sink, const Result& result) {
+//   sink.Append(ToFormattedString(result));
+// }
 
 std::ostream& operator<<(std::ostream& s, const Result& result);
 
