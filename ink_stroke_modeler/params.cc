@@ -20,8 +20,8 @@
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
 #include "internal/validation.h"
-#include "../numbers.h"
-#include "../types.h"
+#include "numbers.h"
+#include "types.h"
 
 // This convenience macro evaluates the given expression, and if it does not
 // return an OK status, returns and propagates the status.
